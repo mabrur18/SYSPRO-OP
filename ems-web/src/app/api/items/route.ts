@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const projectId = items[0]?.project_id;
-    if (!projectId || items.some((item) => item.project_id !== projectId)) {
+    if (!projectId || items.some((item: any) => item.project_id !== projectId)) {
       return NextResponse.json({ error: 'Semua item harus memiliki project_id yang sama.' }, { status: 400 });
     }
 
