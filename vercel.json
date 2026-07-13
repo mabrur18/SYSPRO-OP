@@ -1,1 +1,6 @@
-{"rewrites":[{"source":"/(.*)","destination":"/index.html"}]}
+{
+  "buildCommand": "cd ems-web && npm install && npm run build",
+  "outputDirectory": "ems-web/.next",
+  "installCommand": "cd ems-web && npm install",
+  "framework": "nextjs"
+}
