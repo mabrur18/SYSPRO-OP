@@ -6,7 +6,7 @@ import { createFolder, getGoogleDriveRootFolderId } from '@/lib/googleDrive';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAdmin = createAdminClient();
     const {
       data: { user },

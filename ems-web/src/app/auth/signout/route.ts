@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { NextResponse, type NextRequest } from 'next/server';
 
 async function handleSignOut(request: NextRequest) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Check if we have a session
   const {
