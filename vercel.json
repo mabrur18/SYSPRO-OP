@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd ems-web && npm install && npm run build",
-  "outputDirectory": "ems-web/.next",
-  "installCommand": "cd ems-web && npm install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "nextjs"
 }
