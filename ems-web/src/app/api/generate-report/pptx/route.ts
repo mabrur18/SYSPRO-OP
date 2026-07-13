@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
     // Generate buffer
     const buffer = await pptx.write({ outputType: 'arraybuffer' });
 
-    return new NextResponse(buffer, {
+    return new NextResponse(Buffer.from(buffer as ArrayBuffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'Content-Disposition': `attachment; filename="${project.name.replace(/[^a-zA-Z0-9]/g, '_')}_report.pptx"`,
