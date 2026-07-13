@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
         });
 
         // Simple text for photos (since we don't have direct image data from drive)
-        photos.forEach((photo, index) => {
+        photos.forEach((photo: any, index: number) => {
           slide.addText(
             `${index + 1}. ${photo.caption || 'Foto'} - ${photo.status}`,
             {
