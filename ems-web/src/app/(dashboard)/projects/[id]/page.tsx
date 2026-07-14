@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { Project, Item } from '@/types';
+import type { Project, Item, ProjectStatus } from '@/types';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -12,9 +12,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloadingReport, setDownloadingReport] = useState<'pdf' | 'pptx' | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editStatus, setEditStatus] = useState<ProjectStatus>('not_started');
+  const [savingStatus, setSavingStatus] = useState(false);
   const router = useRouter();
   const supabase = createClient();
   const projectId = id;
+
+  const statusOptions = useMemo(
+    () =>
+      [
+        { value: 'not_started' as const, label: 'Belum Dimulai' },
+        { value: 'ongoing' as const, label: 'Berlangsung' },
+        { value: 'completed' as const, label: 'Selesai' },
+      ] satisfies { value: ProjectStatus; label: string }[],
+    []
+  );
 
   useEffect(() => {
     fetchProject();
@@ -85,6 +98,38 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         {config.label}
       </span>
     );
+  };
+
+  const openEditStatus = () => {
+    if (!project) return;
+    setEditStatus(project.status);
+    setEditOpen(true);
+  };
+
+  const handleSaveStatus = async () => {
+    if (!project) return;
+
+    setSavingStatus(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: editStatus }),
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(result?.error || 'Gagal mengubah status project');
+      }
+
+      setProject(result as Project);
+      setEditOpen(false);
+    } catch (error: any) {
+      alert(error.message || 'Gagal mengubah status project');
+    } finally {
+      setSavingStatus(false);
+    }
   };
 
   const handleDownloadReport = async (format: 'pdf' | 'pptx') => {
@@ -167,7 +212,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 {downloadingReport === 'pdf' ? 'Menyiapkan PDF...' : 'Download PDF'}
               </button>
               {getStatusBadge(project.status)}
-              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
+              <button
+                onClick={openEditStatus}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+              >
                 Edit Project
               </button>
             </div>
@@ -258,6 +306,49 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           )}
         </div>
       </div>
+
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => (savingStatus ? null : setEditOpen(false))}
+          />
+          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Ubah Status Project</h3>
+            <div className="space-y-2">
+              <label className="block text-sm text-gray-600">Status</label>
+              <select
+                value={editStatus}
+                onChange={(e) => setEditStatus(e.target.value as ProjectStatus)}
+                disabled={savingStatus}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              >
+                {statusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mt-6 flex justify-end space-x-2">
+              <button
+                onClick={() => setEditOpen(false)}
+                disabled={savingStatus}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-60"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveStatus}
+                disabled={savingStatus}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-60"
+              >
+                {savingStatus ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
